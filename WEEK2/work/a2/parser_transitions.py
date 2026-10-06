@@ -20,20 +20,10 @@ class PartialParse(object):
         self.sentence = sentence
 
         ### YOUR CODE HERE (3 Lines)
-        ### Your code should initialize the following fields:
-        ###     self.stack: The current stack represented as a list with the top of the stack as the
-        ###                 last element of the list.
-        ###     self.buffer: The current buffer represented as a list with the first item on the
-        ###                  buffer as the first item of the list
-        ###     self.dependencies: The list of dependencies produced so far. Represented as a list of
-        ###             tuples where each tuple is of the form (head, dependent).
-        ###             Order for this list doesn't matter.
-        ###
-        ### Note: The root token should be represented with the string "ROOT"
-        ### Note: If you need to use the sentence object to initialize anything, make sure to not directly 
-        ###       reference the sentence object.  That is, remember to NOT modify the sentence object. 
-
-
+        self.stack = ["ROOT"]
+        self.buffer = sentence[:]
+        self.dependencies = []
+        
         ### END YOUR CODE
 
 
@@ -46,11 +36,18 @@ class PartialParse(object):
         """
         ### YOUR CODE HERE (~7-12 Lines)
         ### TODO:
-        ###     Implement a single parsing step, i.e. the logic for the following as
-        ###     described in the pdf handout:
-        ###         1. Shift
-        ###         2. Left Arc
-        ###         3. Right Arc
+        if transition == "S":
+            self.stack.append(self.buffer.pop(0))
+        elif transition == "LA":
+            # 스택 맨 위 2개 중 끝에서 두 번째 단어가 종속자(dependent)
+            dependent = self.stack.pop(-2)
+            head = self.stack[-1]
+            self.dependencies.append((head, dependent))
+        elif transition == "RA":
+            # 스택 맨 위 2개 중 맨 끝 단어가 종속자(dependent)
+            dependent = self.stack.pop(-1)
+            head = self.stack[-1]
+            self.dependencies.append((head, dependent))
 
 
         ### END YOUR CODE
@@ -90,27 +87,31 @@ def minibatch_parse(sentences, model, batch_size):
     dependencies = []
 
     ### YOUR CODE HERE (~8-10 Lines)
-    ### TODO:
-    ###     Implement the minibatch parse algorithm.  Note that the pseudocode for this algorithm is given in the pdf handout.
-    ###
-    ###     Note: A shallow copy (as denoted in the PDF) can be made with the "=" sign in python, e.g.
-    ###                 unfinished_parses = partial_parses[:].
-    ###             Here `unfinished_parses` is a shallow copy of `partial_parses`.
-    ###             In Python, a shallow copied list like `unfinished_parses` does not contain new instances
-    ###             of the object stored in `partial_parses`. Rather both lists refer to the same objects.
-    ###             In our case, `partial_parses` contains a list of partial parses. `unfinished_parses`
-    ###             contains references to the same objects. Thus, you should NOT use the `del` operator
-    ###             to remove objects from the `unfinished_parses` list. This will free the underlying memory that
-    ###             is being accessed by `partial_parses` and may cause your code to crash.
+    # 1. 각 문장에 대한 PartialParse 객체 생성 및 얕은 복사본 리스트 초기화
+    partial_parses = [PartialParse(s) for s in sentences]
+    unfinished_parses = partial_parses[:]
 
+    # 2. 파싱이 끝나지 않은 객체가 남아있는 동안 반복
+    while len(unfinished_parses) > 0:
+        # 앞에서부터 batch_size만큼 가져오기
+        minibatch = unfinished_parses[:batch_size]
+        # 모델을 통해 다음 transition 예측
+        transitions = model.predict(minibatch)
+        # 예측된 전이를 각 PartialParse에 한 스텝 적용
+        for parse, transition in zip(minibatch, transitions):
+            parse.parse_step(transition)
+        # 완료된 파스(buffer가 비어있고 stack의 크기가 1인 상태) 제거
+        unfinished_parses = [p for p in unfinished_parses if len(p.buffer) > 0 or len(p.stack) > 1]
 
+    # 3. 각 문장의 파싱 결과(dependencies) 수집
+    dependencies = [p.dependencies for p in partial_parses]
     ### END YOUR CODE
 
     return dependencies
 
 
 def test_step(name, transition, stack, buf, deps,
-              ex_stack, ex_buf, ex_deps):
+            ex_stack, ex_buf, ex_deps):
     """Tests that a single parse step returns the expected output"""
     pp = PartialParse([])
     pp.stack, pp.buffer, pp.dependencies = stack, buf, deps
@@ -131,11 +132,11 @@ def test_parse_step():
     Warning: these are not exhaustive
     """
     test_step("SHIFT", "S", ["ROOT", "the"], ["cat", "sat"], [],
-              ("ROOT", "the", "cat"), ("sat",), ())
+            ("ROOT", "the", "cat"), ("sat",), ())
     test_step("LEFT-ARC", "LA", ["ROOT", "the", "cat"], ["sat"], [],
-              ("ROOT", "cat",), ("sat",), (("cat", "the"),))
+            ("ROOT", "cat",), ("sat",), (("cat", "the"),))
     test_step("RIGHT-ARC", "RA", ["ROOT", "run", "fast"], [], [],
-              ("ROOT", "run",), (), (("run", "fast"),))
+            ("ROOT", "run",), (), (("run", "fast"),))
 
 
 def test_parse():
@@ -194,18 +195,18 @@ def test_minibatch_parse():
 
     # Unidirectional arcs test
     sentences = [["right", "arcs", "only"],
-                 ["right", "arcs", "only", "again"],
-                 ["left", "arcs", "only"],
-                 ["left", "arcs", "only", "again"]]
+                ["right", "arcs", "only", "again"],
+                ["left", "arcs", "only"],
+                ["left", "arcs", "only", "again"]]
     deps = minibatch_parse(sentences, DummyModel(), 2)
     test_dependencies("minibatch_parse", deps[0],
-                      (('ROOT', 'right'), ('arcs', 'only'), ('right', 'arcs')))
+                    (('ROOT', 'right'), ('arcs', 'only'), ('right', 'arcs')))
     test_dependencies("minibatch_parse", deps[1],
-                      (('ROOT', 'right'), ('arcs', 'only'), ('only', 'again'), ('right', 'arcs')))
+                    (('ROOT', 'right'), ('arcs', 'only'), ('only', 'again'), ('right', 'arcs')))
     test_dependencies("minibatch_parse", deps[2],
-                      (('only', 'ROOT'), ('only', 'arcs'), ('only', 'left')))
+                    (('only', 'ROOT'), ('only', 'arcs'), ('only', 'left')))
     test_dependencies("minibatch_parse", deps[3],
-                      (('again', 'ROOT'), ('again', 'arcs'), ('again', 'left'), ('again', 'only')))
+                    (('again', 'ROOT'), ('again', 'arcs'), ('again', 'left'), ('again', 'only')))
 
     # Out-of-bound test
     sentences = [["right"]]
@@ -216,8 +217,8 @@ def test_minibatch_parse():
     sentences = [["this", "is", "interleaving", "dependency", "test"]]
     deps = minibatch_parse(sentences, DummyModel(mode="interleave"), 1)
     test_dependencies("minibatch_parse", deps[0],
-                      (('ROOT', 'is'), ('dependency', 'interleaving'),
-                      ('dependency', 'test'), ('is', 'dependency'), ('is', 'this')))
+                    (('ROOT', 'is'), ('dependency', 'interleaving'),
+                    ('dependency', 'test'), ('is', 'dependency'), ('is', 'this')))
     print("minibatch_parse test passed!")
 
 
