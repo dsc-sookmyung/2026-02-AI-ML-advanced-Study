@@ -16,7 +16,7 @@
 
 * 기울기 소실 (Vanishing Gradient)
 
-  * 역전파(Backpropagation through time) 과정에서 가중치 행렬 $W$가 반복 곱해지며 시점 간 거리가 멀어질수록 역전파되는 그래디언트가 기하급수적으로 작아져 소멸함.
+  * 역전파(Backpropagation through time) 과정에서 가중치 행렬 $W$가 반복 곱해지며 시점 간 거리가 멀어질수록 역전파되는 그래디언트가 기하급수적으로 작아져 소멸함
 
   * 따라서 기본 RNN은 먼 문맥 정보 (Long distance dependency)를 학습에 제대로 반영하지 못함
 
