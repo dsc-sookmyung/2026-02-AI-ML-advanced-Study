@@ -8,8 +8,6 @@ https://www.youtube.com/watch?v=LWMzyfvuehA&list=PLoROMvodv4rOaMFbaqxPDoLWjDaRAd
 
 ## 8강. **Self-Attention and Transformers**
 
-# Self-Attention과 Transformer 학습 노트
-
 > **Self-attention과 Transformer는 NLP 발전의 중요한 foundation이다.**
 
 ---
