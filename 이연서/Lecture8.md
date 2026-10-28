@@ -1,50 +1,37 @@
 # Lecture 8
 
-개념: Transformer
-
 ### 1. Impact of Transformers
-
-![스크린샷 2026-10-28 오후 2.18.01.png](Lecture%208/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2026-10-28_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_2.18.01.png)
 
 - `Transformer`: Vaswani et al.(2017)의 Attention Is All You Need 논문에서 제안된 Attention 기반 신경망 구조
 - 기존 RNN의 순차적 계산에 의존하지 않고, `Attention`을 핵심 연산으로 활용
 - Transformer의 장점 (+Attention 구조)
-    - 기계 번역에서의 **높은 성능 & 효율적인 학습**
-    - NLP뿐 아니라 이미지 분류, 단백질 구조 예측 등 다양한 분야에서 활용 가능
+  - 기계 번역에서의 **높은 성능 & 효율적인 학습**
+  - NLP뿐 아니라 이미지 분류, 단백질 구조 예측 등 다양한 분야에서 활용 가능
 - `Scaling Laws`: Model Size, Training Data, Compute의 확장과 모델 성능 사이에 관찰되는 관계를 설명
-    - 이 3가지를 적절히 확장할 때 언어 모델의 성능이 일정한 경향에 따라 개선된다
+  - 이 3가지를 적절히 확장할 때 언어 모델의 성능이 일정한 경향에 따라 개선된다
 
 +) `Transformer`는 Attention이 핵심이지만, 실제 구조에는 Feed Forward Network, Positional Encoding 등 다른 요소도 필요
 
 ### 2. From RNNs to Attention-Based Models
 
 - `RNN`은 이전 Hidden State에 의존하여 입력 시퀀스를 순차적으로 처리
-    
-    ![스크린샷 2026-10-28 오후 2.17.34.png](Lecture%208/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2026-10-28_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_2.17.34.png)
-    
-    - h_t = f(h_(t-1), x_t)
+  - h*t = f(h*(t-1), x_t)
 - 기존 RNN 기반 Seq2Seq 모델은 Attention을 결합하여 Encoder의 정보를 참조할 수 있었지만, **순차적 계산이라는 한계가 존재**
 - `Transformer`의 주요 설계 목표 세가지
-    1. Computational Complexity
-        - Self-Attention은 `O(n^2d)`, RNN은 `O(nd^2`의 Layer당 계산 복잡도를 가진다. n <d 일 때 `Self-Attention`이 유리
-    2. Path Length
-        
-        ![스크린샷 2026-10-28 오후 2.17.10.png](Lecture%208/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2026-10-28_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_2.17.10.png)
-        
-        - RNN의 최대 경로 길이 = `O(n)`
-        - Self-Attention의 최대 경로 길이 = `O(1)`
-            
-            → Self-Attention은 멀리 떨어진 단어도 직접 상호작용 가능
-            
-    3. Parallelizability
-        - RNN은 이전 Hidden State가 필요해 시점 간 병렬화가 어려움
-            - h_t = f(h_(t-1), x_t)
-        - Self-Attention은 시퀀스 내 여러 토큰의 연산을 병렬 수행 가능
-            - 이전 Hidden State를 사용하는 대신 멀리 떨어진 단어와 직접 상호작용
+  1. Computational Complexity
+     - Self-Attention은 `O(n^2d)`, RNN은 `O(nd^2`의 Layer당 계산 복잡도를 가진다. n <d 일 때 `Self-Attention`이 유리
+  2. Path Length
+     - RNN의 최대 경로 길이 = `O(n)`
+     - Self-Attention의 최대 경로 길이 = `O(1)`
+       → Self-Attention은 멀리 떨어진 단어도 직접 상호작용 가능
+
+  3. Parallelizability
+     - RNN은 이전 Hidden State가 필요해 시점 간 병렬화가 어려움
+       - h*t = f(h*(t-1), x_t)
+     - Self-Attention은 시퀀스 내 여러 토큰의 연산을 병렬 수행 가능
+       - 이전 Hidden State를 사용하는 대신 멀리 떨어진 단어와 직접 상호작용
 
 `Self-Attention`: 각 단어가 같은 시퀀스의 다른 단어들과의 관련성을 계산하여 정보를 결합하는 메커니즘
-
-![스크린샷 2026-10-28 오후 2.16.56.png](Lecture%208/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2026-10-28_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_2.16.56.png)
 
 ### 3. Understanding the Transformer Model
 
@@ -52,20 +39,16 @@
 
 - `Self-Attention`: 동일한 시퀀스 내 단어 간 관련성을 계산하고, 관련 정보를 반영하여 새로운 표현을 생성하는 메커니즘
 - 각 단어의 입력 벡터로부터 학습 가능한 가중치 행렬을 사용해 `Query`, `Key`, `Value`를 생성
-    - `Query (Q)`: 현재 단어가 참조하려는 정보를 나타내는 벡터
-    - `Key (K)`: Query와 비교하여 관련성을 계산하는 벡터
-    - `Value (V)`: Attention Weight에 따라 실제 결합되는 정보 벡터
+  - `Query (Q)`: 현재 단어가 참조하려는 정보를 나타내는 벡터
+  - `Key (K)`: Query와 비교하여 관련성을 계산하는 벡터
+  - `Value (V)`: Attention Weight에 따라 실제 결합되는 정보 벡터
 
 ### 계산 과정
-
-![스크린샷 2026-10-28 오후 2.33.56.png](Lecture%208/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2026-10-28_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_2.33.56.png)
 
 1. Q, K, V 생성: Q = XW^Q, K = XW^K, V = XW^V
 2. Attention Score: E = QK^T
 3. Attention Weight: A = softmax(E)
 4. Output: Z=AV
-
-![스크린샷 2026-10-28 오후 2.34.04.png](Lecture%208/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2026-10-28_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_2.34.04.png)
 
 Attention(Q, K, V) = softmax(QK^T)V
 
@@ -88,17 +71,15 @@ Attention(Q, K, V) = softmax(QK^T)V
 
 - 토큰의 Feature Dimension을 기준으로 정규화하여 학습을 안정화
 - 원본 Transformer에서는 `Add & Norm` 구조를 사용
-    - `Add & Norm` 구조 = Residual Connection + LayerNorm
+  - `Add & Norm` 구조 = Residual Connection + LayerNorm
 
 `LayerNorm(x+Sublayer(x))`
 
 #### 3-5) Scaled Dot-Product Attention
 
 - Q와 K의 차원이 커질수록 내적값이 커질 수 있으므로 **루트(d_k)로 나누어** Scaling 수행 (그냥 기존 Attention에 루트(d_k)로 나눈다고 생각
-    - d = Key의 차원
+  - d = Key의 차원
 - Softmax의 과도한 포화를 완화하여 학습을 안정화
-
-![스크린샷 2026-10-28 오후 2.55.30.png](Lecture%208/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2026-10-28_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_2.55.30.png)
 
 #### 3-6) Positional Encoding
 
@@ -124,9 +105,7 @@ Attention(Q, K, V) = softmax(QK^T)V
 
 - Multi-Head Attention: 여러 Attention Head를 병렬로 계산하고 결과를 결합하는 방식
 - 각 Head는 서로 다른 학습 가능한 Q, K, V 가중치 행렬을 사용
-    
-    ⇒ 여러 표현 공간에서 다양한 단어 간 관계를 학습 가능
-    
+  ⇒ 여러 표현 공간에서 다양한 단어 간 관계를 학습 가능
 
 **계산 과정**
 
@@ -154,16 +133,14 @@ Attention(Q, K, V) = softmax(QK^T)V
 #### 3-12) Masked Self-Attention
 
 - 미래 토큰을 미리 참조하지 못하도록 Attention Mask를 적용
-    - 방법: 참조할 수 없는 위치의 Attention Score를 -무한대로 설정 → Softmax 이후 Weight가 0이 되도록 함
+  - 방법: 참조할 수 없는 위치의 Attention Score를 -무한대로 설정 → Softmax 이후 Weight가 0이 되도록 함
 - 학습 시 미래 정보 누출을 방지하면서 병렬 계산을 가능하게 함
 
 #### 3-13) Cross-Attention
 
 - Query: Decoder에서 생성
 - **Key, Value: Encoder에서 생성**
-    
-    ⇒ Decoder가 입력 문장의 문맥 정보를 참조하도록 함
-    
+  ⇒ Decoder가 입력 문장의 문맥 정보를 참조하도록 함
 
 #### 3-14) Output Generation
 
@@ -176,13 +153,9 @@ Attention(Q, K, V) = softmax(QK^T)V
 #### 4-1) Transformer의 한계
 
 - **Quadratic Complexity**
-    
-    Self-Attention은 모든 단어 쌍의 관계를 계산 → Sequence Length에 따라 계산량이 `O(n^2d)`로 증가
-    
+  Self-Attention은 모든 단어 쌍의 관계를 계산 → Sequence Length에 따라 계산량이 `O(n^2d)`로 증가
 - **Positional Encoding**
-    
-    단순한 절대 위치 정보만으로는 단어 간 관계를 충분히 표현하기 어려울 수 있음
-    
+  단순한 절대 위치 정보만으로는 단어 간 관계를 충분히 표현하기 어려울 수 있음
 
 #### 4-2) 개선 방법
 
