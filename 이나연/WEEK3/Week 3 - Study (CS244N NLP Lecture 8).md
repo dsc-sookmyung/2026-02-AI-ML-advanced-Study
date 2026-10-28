@@ -8,8 +8,6 @@ https://www.youtube.com/watch?v=LWMzyfvuehA&list=PLoROMvodv4rOaMFbaqxPDoLWjDaRAd
 
 ## 8강. **Self-Attention and Transformers**
 
-# Self-Attention과 Transformer 학습 노트
-
 > **Self-attention과 Transformer는 NLP 발전의 중요한 foundation이다.**
 
 ---
@@ -18,7 +16,8 @@ https://www.youtube.com/watch?v=LWMzyfvuehA&list=PLoROMvodv4rOaMFbaqxPDoLWjDaRAd
 
 ### 접근 방향
 
-기존과 **같은 목표(same goals), 다른 building blocks**. 모델 전체를 바꾸기보다는, 모델을 구성하는 building blocks를 다시 고민하자는 것에서 시작되었습니다.
+기존과 **같은 목표(same goals), 다른 building blocks**. 
+모델 전체를 바꾸기보다는, 모델을 구성하는 building blocks를 다시 고민하자는 것에서 시작되었습니다.
 
 ### RNN/LSTM의 한계: Linear Interaction Distance
 
@@ -50,7 +49,7 @@ https://www.youtube.com/watch?v=LWMzyfvuehA&list=PLoROMvodv4rOaMFbaqxPDoLWjDaRAd
 - **비유**: key = 메뉴판 / value = 음식 / query = 주문
 - 단, self-attention은 weight를 활용해 **부드럽게(soft) 대조**합니다.
 
-> 🍜 **Soft Lookup 비유**
+>  **Soft Lookup 비유**
 > "짬뽕 70% + 탕수육 30% 느낌의 퓨전 음식을 만들어줘"라고 쿼리를 날리면, 주방(Value)에서 그 비율대로 재료를 섞어 **새로운 한 그릇(새로운 임베딩 벡터)** 을 만들어줍니다.
 
 ### 연산 과정
@@ -83,7 +82,7 @@ $$\text{Attention}(Q, K, V) = \text{softmax}(QK^T)V$$
 
 sequence index를 벡터($p_i$)로 만들어 입력 단어 임베딩에 **직접 더해줍니다.**
 
-$$x_i \leftarrow x_i + p_i$$
+$$x_i <- x_i + p_i$$
 
 - 매 레이어가 아니라 **처음 레이어에서만** 수행합니다.
 - 모델이 단어의 절대적·상대적 위치를 구별할 수 있게 됩니다.
@@ -110,7 +109,7 @@ $$x_i \leftarrow x_i + p_i$$
 - 어텐션을 통과한 **각 위치의 출력 벡터**를 독립적인 **2층 MLP**에 통과시켜 비선형성을 부여합니다.
 - 병렬 연산이 가능해 **GPU 효율이 높습니다.**
 
-> 📌 **역할 구분**
+>  **역할 구분**
 > - **Self-attention**: 모든 단어를 둘러보며 정보를 **섞음**
 > - **FFN**: 각 단어가 **독립적으로** 자기 위치의 벡터 하나만 가지고 MLP를 통과
 
